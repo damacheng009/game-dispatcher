@@ -10,6 +10,7 @@ package com.company.game.dispatcher.msg;
 public class RequestMsgBase extends AbstractMsg {
 	
 	// 请求参数列表，对应业务逻辑方法的参数列表
+	// 觉得用Map应该更友好，先简单处理了
 	private Object[] paraArray;
 	
 	public RequestMsgBase() {

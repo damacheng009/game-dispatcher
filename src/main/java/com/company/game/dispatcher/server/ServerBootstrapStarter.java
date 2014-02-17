@@ -37,7 +37,7 @@ public class ServerBootstrapStarter {
 				pipeline.addLast("encoder", new MsgEncoder());
 				pipeline.addLast("LengthFieldBasedFrameDecoder", 
 						new LengthFieldBasedFrameDecoder(65 * 1024, 0, 2));
-				pipeline.addLast("decoder", new MsgDecoder());
+				pipeline.addLast("decoder", new MsgDecoder(true));
 				pipeline.addLast("handler", new ServerDispatcherHandler());
 			}
 	

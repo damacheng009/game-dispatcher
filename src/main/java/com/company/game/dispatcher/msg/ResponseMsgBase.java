@@ -11,11 +11,23 @@ public class ResponseMsgBase extends AbstractMsg {
 	
 	protected boolean isSuccess;
 	
+	// 返回值列表，可能返回多个值
+	protected Object[] resultArray;
+	
 	public ResponseMsgBase() {
 	}
 	
 	public ResponseMsgBase(short type) {
-		super((short) (0 - type));
+		super(type);
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("result: ");
+		for (Object object : resultArray) {
+			sb.append(object.toString() + " ");
+		}
+		return sb.toString();
 	}
 
 	public boolean isSuccess() {
@@ -24,6 +36,14 @@ public class ResponseMsgBase extends AbstractMsg {
 
 	public void setSuccess(boolean isSuccess) {
 		this.isSuccess = isSuccess;
+	}
+
+	public Object[] getResultArray() {
+		return resultArray;
+	}
+
+	public void setResultArray(Object[] resultArray) {
+		this.resultArray = resultArray;
 	}
 	
 }

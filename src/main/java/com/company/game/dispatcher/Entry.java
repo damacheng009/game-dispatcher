@@ -54,15 +54,15 @@ public class Entry {
 	            port = Integer.parseInt(cmd.getOptionValue("p"));   
 	        }
 	        
-	        ClassUtil.initTypeToMsgClassMap();
 	        if (mode.equals("c")) {
 	        	ClientBootstrapStarter.start(remote, port);
 	        } else if (mode.equals("s")) {
-	        	ClassUtil.initTypeToExecutorClassMap();
+	        	ClassUtil.initTypeToHandlerReflectInfoMap();
 	            ServerBootstrapStarter.start(port);
 	        }
 		} catch (Exception e) {
 			System.err.println("解析参数异常");
+			e.printStackTrace();
 		}  
     }
 }

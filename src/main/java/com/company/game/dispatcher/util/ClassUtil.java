@@ -3,6 +3,7 @@ package com.company.game.dispatcher.util;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -15,7 +16,7 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import com.company.game.dispatcher.annotation.UserMsgAndExecAnnotation;
+import com.company.game.dispatcher.annotation.UserHandlerAnnotation;
 
 /**
  * 处理反射相关的方法
@@ -26,75 +27,50 @@ import com.company.game.dispatcher.annotation.UserMsgAndExecAnnotation;
 
 public class ClassUtil {
 	
-	// msgType->请求、响应类的class对象
-	private static Map<Short, Class<?>> typeToMsgClassMap;
-	
-	// msgType->业务逻辑执行器的class对象
-	private static Map<Short, Class<?>> typeToExecutorClassMap;
+	// msgType->业务逻辑方法的反射相关数据
+	private static Map<Short, HandlerReflectInfo> typeToHandlerReflectInfoMap;
 	
 	// class文件过滤器
 	private static MyFilter myFilter = new MyFilter(true);
 	
-	// 根据类型得到对应的消息类的class对象
-	public static Class<?> getMsgClassByType(short type) {
-		return typeToMsgClassMap.get(type);
-	}
-	
 	// 根据类型得到对应的业务逻辑执行器的class对象
-	public static Class<?> getExecutorClassByType(short type) {
-		return typeToExecutorClassMap.get(type);
-	}
-	
-	/**
-	 * 初始化typeToMsgClassMap
-	 * 遍历包com.company.game.dispatcher.msg
-	 * 取得消息类的class文件
-	 * 
-	 * @throws ClassNotFoundException
-	 * @throws IOException
-	 */
-	public static void initTypeToMsgClassMap() 
-			throws ClassNotFoundException, IOException {
-		
-		Map<Short, Class<?>> tmpMap = new HashMap<Short, Class<?>>();
-		
-		Set<Class<?>> classSet = getClasses("com.company.game.dispatcher.msg");
-		if (classSet != null) {
-			for (Class<?> clazz : classSet) {
-				if (clazz.isAnnotationPresent(UserMsgAndExecAnnotation.class)) {
-					UserMsgAndExecAnnotation annotation = clazz.getAnnotation(UserMsgAndExecAnnotation.class);
-					tmpMap.put(annotation.msgType(), clazz);
-				}
-			}
-		}
-		
-		typeToMsgClassMap = Collections.unmodifiableMap(tmpMap);
+	public static HandlerReflectInfo getExecutorClassByType(short type) {
+		return typeToHandlerReflectInfoMap.get(type);
 	}
 	
 	/**
 	 * 初始化typeToExecutorClassMap
-	 * 遍历包com.company.game.dispatcher.exec
-	 * 取得业务逻辑执行器的class文件
+	 * 遍历包com.company.game.dispatcher.exec中的业务逻辑类
+	 * 取得业务逻辑handler的Method对象和所在类的class对象
 	 * 
 	 * @throws ClassNotFoundException
 	 * @throws IOException
 	 */
-	public static void initTypeToExecutorClassMap() 
+	public static void initTypeToHandlerReflectInfoMap() 
 			throws ClassNotFoundException, IOException {
 		
-		Map<Short, Class<?>> tmpMap = new HashMap<Short, Class<?>>();
+		Map<Short, HandlerReflectInfo> tmpMap = new HashMap<Short, HandlerReflectInfo>();
 		
 		Set<Class<?>> classSet = getClasses("com.company.game.dispatcher.exec");
 		if (classSet != null) {
 			for (Class<?> clazz : classSet) {
-				if (clazz.isAnnotationPresent(UserMsgAndExecAnnotation.class)) {
-					UserMsgAndExecAnnotation annotation = clazz.getAnnotation(UserMsgAndExecAnnotation.class);
-					tmpMap.put(annotation.msgType(), clazz);
+				Method[] methods = clazz.getDeclaredMethods();
+				if (methods != null) {
+					for (Method method : methods) {
+						if (method.isAnnotationPresent(UserHandlerAnnotation.class)) {
+							UserHandlerAnnotation annotation = method.getAnnotation(UserHandlerAnnotation.class);
+							
+							HandlerReflectInfo info = new HandlerReflectInfo();
+							info.setBelongClazz(clazz);
+							info.setMethod(method);
+							tmpMap.put(annotation.msgType(), info);
+						}
+					}
 				}
 			}
 		}
 		
-		typeToExecutorClassMap = Collections.unmodifiableMap(tmpMap);
+		typeToHandlerReflectInfoMap = Collections.unmodifiableMap(tmpMap);
 	}
 	
 	/**
@@ -243,6 +219,6 @@ class MyFilter implements FileFilter {
 		return (recursive && file.isDirectory())
 				|| (file.getName().endsWith(".class") 
 						&& file.getName().contains("$") == false
-						&& file.getName().startsWith("User"));
+						&& file.getName().endsWith("Handler"));
 	}
 }

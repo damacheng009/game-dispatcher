@@ -4,8 +4,7 @@ import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 
 import com.company.game.dispatcher.msg.MsgType;
-import com.company.game.dispatcher.msg.UserAddRequest;
-import com.company.game.dispatcher.msg.UserMultiRequest;
+import com.company.game.dispatcher.msg.RequestMsgBase;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -81,20 +80,16 @@ public class ClientDispatcherHandler extends SimpleChannelInboundHandler<Object>
 				
 				try {
 					if (type == MsgType.ADD) {
-						UserAddRequest addReq = new UserAddRequest();
-						addReq.setLeftNumber(p1);
-						addReq.setRightNumber(p2);
-						
+						RequestMsgBase req = new RequestMsgBase(MsgType.ADD);
+						req.setParaArray(new Object[]{p1, p2});
 						latch = new CountDownLatch(1);
-						this.channel.writeAndFlush(addReq);
+						this.channel.writeAndFlush(req);
 						latch.await();
 					} else if (type == MsgType.MULTI) {
-						UserMultiRequest multiReq = new UserMultiRequest();
-						multiReq.setLeftNumber(p1);
-						multiReq.setRightNumber(p2);
-						
+						RequestMsgBase req = new RequestMsgBase(MsgType.MULTI);
+						req.setParaArray(new Object[]{p1, p2});
 						latch = new CountDownLatch(1);
-						this.channel.writeAndFlush(multiReq);
+						this.channel.writeAndFlush(req);
 						latch.await();
 					}
 				} catch (Exception e) {
